@@ -228,7 +228,7 @@ export function clientConfiguration(
   key: string,
   ccSwitchTarget: CCSwitchTargetID = 'claude',
   model = '',
-  ccSwitchProviderName = 'GPT-Load',
+  ccSwitchProviderName = 'OpenAI',
 ): string {
   switch (clientID) {
     case 'cc-switch': {
@@ -254,10 +254,10 @@ export function clientConfiguration(
       )
     case 'codex':
       return [
-        'model_provider = "gpt-load"',
+        'model_provider = "OpenAI"',
         '',
-        '[model_providers.gpt-load]',
-        'name = "GPT-Load"',
+        '[model_providers.OpenAI]',
+        'name = "OpenAI"',
         `base_url = "${openAIBaseURL(origin)}"`,
         'env_key = "GPT_LOAD_API_KEY"',
         'wire_api = "responses"',
@@ -267,8 +267,8 @@ export function clientConfiguration(
     case 'cherry-studio':
       return JSON.stringify(
         {
-          id: 'gpt-load',
-          name: 'GPT-Load',
+          id: 'OpenAI',
+          name: 'OpenAI',
           type: 'openai',
           baseUrl: openAIBaseURL(origin),
           apiKey: key,
