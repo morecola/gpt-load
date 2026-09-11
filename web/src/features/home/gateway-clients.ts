@@ -325,7 +325,7 @@ export function clientQuickImportURL(
   key: string,
   ccSwitchTarget: CCSwitchTargetID = 'claude',
   model = '',
-  ccSwitchProviderName = 'GPT-Load',
+  ccSwitchProviderName = 'OpenAI',
 ): string | null {
   switch (clientID) {
     case 'cc-switch': {
@@ -344,8 +344,8 @@ export function clientQuickImportURL(
     case 'cherry-studio': {
       const payload = encodeURLSafeBase64(
         JSON.stringify({
-          id: 'gpt-load',
-          name: 'GPT-Load',
+          id: 'OpenAI',
+          name: 'OpenAI',
           type: 'openai',
           baseUrl: openAIBaseURL(origin),
           apiKey: key,
