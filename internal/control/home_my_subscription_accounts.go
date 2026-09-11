@@ -317,6 +317,11 @@ func (s *Service) mapMySubscriptionAccount(
 		representative.observation,
 		credential.IdentityFingerprint,
 	)
+	// 脱敏：observation 快照的 account_summary 含上游账号完整邮箱、显示名与组织
+	// 信息，用户端一并剔除；卡片只消费 plan_summary 与 quota_windows。
+	if item.Observation != nil && item.Observation.Snapshot != nil {
+		item.Observation.Snapshot.Account = nil
+	}
 	item.Proxy = outboundproxy.View{
 		ConfiguredMode:  outboundproxy.ModeInherit,
 		EffectiveMode:   outboundproxy.ModeDirect,

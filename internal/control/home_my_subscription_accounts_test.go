@@ -1,6 +1,7 @@
 package control
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -33,6 +34,7 @@ func TestReadMySubscriptionAccountsScopesToPermittedGroupsAndMasksIdentity(t *te
 	}
 
 	createHomeCredentialObservation(t, fixture, sharedInA, now.Add(-time.Minute), "Shared plan")
+	seedHomeCredentialObservationAccountSummary(t, fixture, sharedInA)
 	createHomeCredentialObservation(t, fixture, sharedInB, now.Add(-2*time.Minute), "Shared plan")
 	createHomeCredentialObservation(t, fixture, otherInB, now.Add(-3*time.Minute), "Other plan")
 
@@ -67,6 +69,13 @@ func TestReadMySubscriptionAccountsScopesToPermittedGroupsAndMasksIdentity(t *te
 	if item.Credential.Account.Email != "" || item.Credential.Account.EmailMask == "" {
 		t.Fatalf("account identity not masked = %#v", item.Credential.Account)
 	}
+	if item.Credential.Observation == nil || item.Credential.Observation.Snapshot == nil {
+		t.Fatalf("observation missing = %#v", item.Credential.Observation)
+	}
+	if item.Credential.Observation.Snapshot.Account != nil {
+		t.Fatalf("observation account_summary not stripped = %#v",
+			item.Credential.Observation.Snapshot.Account)
+	}
 	if item.Credential.Proxy.DisplayURL != "" ||
 		item.Credential.Proxy.ConfiguredMode != outboundproxy.ModeInherit ||
 		item.Credential.Proxy.EffectiveMode != outboundproxy.ModeDirect {
@@ -76,7 +85,6 @@ func TestReadMySubscriptionAccountsScopesToPermittedGroupsAndMasksIdentity(t *te
 		item.Credential.Observation.Snapshot.Plan.Name != "Shared plan" {
 		t.Fatalf("quota observation missing = %#v", item.Credential.Observation)
 	}
-
 	unfilteredKey, err := fixture.service.CreateAccessKey(t.Context(), AccessKeyCreateRequest{
 		Name: "unfiltered key",
 	})
@@ -144,5 +152,35 @@ func TestMySubscriptionAccountsRouteServesAccessKeysAndAdmin(t *testing.T) {
 	admin := performHomeRequest(engine, "/api/home/my-subscription-accounts", authTestKey)
 	if admin.Code != http.StatusOK {
 		t.Fatalf("admin response = %d %s", admin.Code, admin.Body.String())
+	}
+}
+
+// seedHomeCredentialObservationAccountSummary 往已存在的观察快照里塞入上游账号
+// 身份摘要，模拟生产环境可能出现的 account_summary，用于验证用户端会被剔除。
+func seedHomeCredentialObservationAccountSummary(
+	t *testing.T,
+	fixture serviceFixture,
+	credential models.Credential,
+) {
+	t.Helper()
+	var row models.CredentialObservation
+	if err := fixture.db.Where("credential_id = ?", credential.ID).Take(&row).Error; err != nil {
+		t.Fatalf("query credential observation: %v", err)
+	}
+	var snapshot CredentialObservationSnapshot
+	if err := json.Unmarshal(row.SnapshotJSON, &snapshot); err != nil {
+		t.Fatalf("unmarshal observation snapshot: %v", err)
+	}
+	snapshot.Account = &ObservationAccountSummary{
+		Email: "identity@example.com", DisplayName: "Shared Identity",
+		OrganizationName: "Acme Org",
+	}
+	updated, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatalf("marshal observation snapshot: %v", err)
+	}
+	if err := fixture.db.Model(&models.CredentialObservation{}).
+		Where("credential_id = ?", credential.ID).Update("snapshot_json", updated).Error; err != nil {
+		t.Fatalf("update observation snapshot: %v", err)
 	}
 }
