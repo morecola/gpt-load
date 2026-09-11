@@ -7,7 +7,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { useApiClient } from '@/api/client-context'
 import { useStableLoading } from '@/app/loading-state'
 import { healthQueryOptions } from '@/app/resources/health'
-import { homeBaseQueryOptions, homeSubscriptionAccountsQueryOptions } from '@/app/resources/home'
+import {
+  homeBaseQueryOptions,
+  homeSubscriptionAccountsQueryOptions,
+  mySubscriptionAccountsQueryOptions,
+} from '@/app/resources/home'
 import { systemUpdateQueryOptions } from '@/app/resources/system-update'
 import { homeLocation } from '@/app/route-locations'
 import LedgerSheet from '@/components/layout/LedgerSheet.vue'
@@ -41,9 +45,18 @@ const { t } = useI18n()
 const isAccessKey = computed(() => session.state.principalType === 'access_key')
 const isAdmin = computed(() => session.state.principalType === 'admin')
 const baseQuery = useQuery(homeBaseQueryOptions(client))
-// 订阅账号包含完整管理身份和额度，只允许管理员发起查询；模板仍二次 gate，
-// 防止会话切换时短暂复用旧 Query 缓存。
-const subscriptionAccountsQuery = useQuery(homeSubscriptionAccountsQueryOptions(client, isAdmin))
+// 订阅账号额度按登录身份取数：管理员走管理端点；访问密钥走按其分组权限过滤、
+// 身份已脱敏的用户端点。两个身份各自持有独立 Query（key 不同、互不启用），
+// 模板仍二次 gate，防止会话切换时短暂复用旧 Query 缓存。
+const adminSubscriptionAccountsQuery = useQuery(
+  homeSubscriptionAccountsQueryOptions(client, isAdmin),
+)
+const scopedSubscriptionAccountsQuery = useQuery(
+  mySubscriptionAccountsQueryOptions(client, isAccessKey),
+)
+const subscriptionAccountsQuery = computed(() =>
+  isAdmin.value ? adminSubscriptionAccountsQuery : scopedSubscriptionAccountsQuery,
+)
 // 更新检查与首页数据解耦，仅由管理员进入首页时按需触发一次。
 const updateQuery = useQuery(
   systemUpdateQueryOptions(client, () => session.state.principalType === 'admin'),
@@ -195,7 +208,7 @@ onBeforeUnmount(() => window.clearInterval(uptimeTimer))
         <HomeAttention v-if="!isAccessKey" :health="healthQuery.data.value ?? null" />
 
         <HomeSubscriptionAccounts
-          v-if="isAdmin && subscriptionAccountsQuery.data.value?.items.length"
+          v-if="subscriptionAccountsQuery.data.value?.items.length"
           :accounts="subscriptionAccountsQuery.data.value"
         />
 

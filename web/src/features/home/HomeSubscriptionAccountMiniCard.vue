@@ -48,7 +48,10 @@ onBeforeUnmount(() => {
 
 const credential = computed<CredentialItemDto>(() => props.account.credential)
 const snapshot = computed(() => credential.value.observation?.snapshot)
-const accountName = computed(() => credential.value.account.email ?? credential.value.mask)
+const accountName = computed(
+  () =>
+    credential.value.account.email ?? credential.value.account.email_mask ?? credential.value.mask,
+)
 const planLabel = computed(() => snapshot.value?.plan_summary.name?.trim() ?? '')
 const planLevel = computed(() => snapshot.value?.plan_summary.level ?? 'unknown')
 const channelTooltip = computed(() =>

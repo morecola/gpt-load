@@ -111,6 +111,7 @@ export const controlQueryKeys = {
     all: ['control', 'home'] as const,
     base: () => ['control', 'home', 'base'] as const,
     subscriptionAccounts: () => ['control', 'home', 'subscription-accounts'] as const,
+    mySubscriptionAccounts: () => ['control', 'home', 'my-subscription-accounts'] as const,
     statisticsAll: () => ['control', 'home', 'statistics'] as const,
     statistics: (range: HomeRange) => ['control', 'home', 'statistics', range] as const,
   },

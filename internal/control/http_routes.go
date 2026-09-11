@@ -152,6 +152,12 @@ func (s *Server) HTTPModule() httproute.Module {
 				s.handleHomeSubscriptionAccounts,
 			),
 			controlRoute(
+				"control.home.my-subscription-accounts",
+				http.MethodGet,
+				"/home/my-subscription-accounts",
+				s.handleMySubscriptionAccounts,
+			),
+			controlRoute(
 				"control.home.statistics",
 				http.MethodGet,
 				"/home/statistics",

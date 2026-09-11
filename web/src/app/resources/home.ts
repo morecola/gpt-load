@@ -649,6 +649,16 @@ export async function getHomeSubscriptionAccounts(
   )
 }
 
+// 用户侧端点：按访问密钥的分组权限过滤，账号身份已由后端脱敏。
+export async function getMySubscriptionAccounts(
+  client: ApiClient,
+  signal?: AbortSignal,
+): Promise<HomeSubscriptionAccountsDto> {
+  return projectHomeSubscriptionAccounts(
+    await client.request('/api/home/my-subscription-accounts', { method: 'GET', signal }),
+  )
+}
+
 export function homeBaseQueryOptions(client: ApiClient) {
   return queryOptions({
     queryKey: controlQueryKeys.home.base(),
@@ -665,6 +675,18 @@ export function homeSubscriptionAccountsQueryOptions(
   return queryOptions({
     queryKey: controlQueryKeys.home.subscriptionAccounts(),
     queryFn: ({ signal }) => getHomeSubscriptionAccounts(client, signal),
+    enabled: computed(() => toValue(enabled)),
+    refetchOnMount: 'always',
+  })
+}
+
+export function mySubscriptionAccountsQueryOptions(
+  client: ApiClient,
+  enabled: MaybeRefOrGetter<boolean>,
+) {
+  return queryOptions({
+    queryKey: controlQueryKeys.home.mySubscriptionAccounts(),
+    queryFn: ({ signal }) => getMySubscriptionAccounts(client, signal),
     enabled: computed(() => toValue(enabled)),
     refetchOnMount: 'always',
   })
