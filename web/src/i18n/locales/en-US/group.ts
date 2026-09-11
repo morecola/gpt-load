@@ -296,7 +296,7 @@ export default {
         upstreamUrlError: 'Enter a valid HTTP or HTTPS Base URL.',
         urlWarning: 'Changing the Base URL changes where future Group requests are sent.',
         gptLoadUrlDescription:
-          'Enter the GPT-Load gateway root or deployment prefix. Do not include standard protocol paths such as /v1 or /v1beta.',
+          'Enter the BeeDog gateway root or deployment prefix. Do not include standard protocol paths such as /v1 or /v1beta.',
         newApiUrlDescription:
           'Enter the New API gateway root or deployment prefix. Do not include standard protocol paths such as /v1 or /v1beta.',
         cpaUrlDescription:

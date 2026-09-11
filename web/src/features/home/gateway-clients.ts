@@ -267,8 +267,8 @@ export function clientConfiguration(
     case 'cherry-studio':
       return JSON.stringify(
         {
-          id: 'OpenAI',
-          name: 'OpenAI',
+          id: 'BeeDog',
+          name: 'BeeDog',
           type: 'openai',
           baseUrl: openAIBaseURL(origin),
           apiKey: key,
@@ -344,8 +344,8 @@ export function clientQuickImportURL(
     case 'cherry-studio': {
       const payload = encodeURLSafeBase64(
         JSON.stringify({
-          id: 'OpenAI',
-          name: 'OpenAI',
+          id: 'BeeDog',
+          name: 'BeeDog',
           type: 'openai',
           baseUrl: openAIBaseURL(origin),
           apiKey: key,

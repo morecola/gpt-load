@@ -20,7 +20,7 @@ export default {
         'Multiplied by the selected Group multiplier. Logs, statistics, and cost limits use adjusted amounts. Default 1; 0 zeroes priced amounts. Future requests only.',
       invalid: 'Enter a multiplier from 0 to 1000 with at most 6 decimals',
     },
-    appName: 'GPT-Load',
+    appName: 'BeeDog',
     retry: 'Retry',
     modelDiscoveryFailed: 'Discovery failed; draft unchanged',
     changeKey: 'Change sign-in key',
@@ -143,7 +143,7 @@ export default {
     },
   },
   auth: {
-    eyebrow: 'GPT-Load 2.0',
+    eyebrow: 'BeeDog',
     headline: 'One sign-in, clearly separated access',
     lead: 'Use AUTH_KEY to manage the gateway, or an access key to view its Home, models, requests, and usage. The server identifies the credential automatically',
     capabilities: {
@@ -160,7 +160,7 @@ export default {
         description: 'See requests, tokens, and cost estimates together',
       },
     },
-    loginTitle: 'Sign in to GPT-Load',
+    loginTitle: 'Sign in to BeeDog',
     loginDescription: 'Enter an AUTH_KEY or access key; the server will identify its access',
     keyLabel: 'Sign-in key',
     keyPlaceholder: 'Enter an AUTH_KEY or access key',
@@ -258,7 +258,7 @@ export default {
         'Version {latest} is available\nCurrent version {current}\nPublished {published}\nOpen the release notes',
       uptime: 'Uptime',
       tokens: '{count} tokens',
-      welcomeTitle: 'Welcome to GPT-Load',
+      welcomeTitle: 'Welcome to BeeDog',
       importCredentials: 'Import channel credentials',
       welcomeDescription:
         'Choose a channel and import its API keys to create a Group and start forwarding requests',
