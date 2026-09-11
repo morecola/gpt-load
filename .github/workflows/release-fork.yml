@@ -1,0 +1,84 @@
+name: Release (fork)
+
+# fork 专用发布流程：只产出 GitHub Release 与各平台二进制，不构建、不推送任何镜像。
+# 上游的 release.yml 受 internal/webui 契约测试保护，且发布链路硬依赖 DockerHub
+# secrets（publish-github 需要 publish-images 成功，后者必须登录 DockerHub），
+# 在 fork 中保持该文件原样并禁用其触发，tag 发版统一走本工作流。
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-fork-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GOPROXY: https://proxy.golang.org|direct
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout tag commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node for web build
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Enable corepack pnpm
+        run: corepack enable
+
+      - name: Build web
+        run: |
+          pnpm --dir web install --frozen-lockfile
+          pnpm --dir web run build
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build binaries
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
+            goos="${target%%/*}"
+            goarch="${target##*/}"
+            output="dist/gpt-load-${goos}-${goarch}"
+            if [[ "${goos}" == "windows" ]]; then
+              output="${output}.exe"
+            fi
+            echo "building ${output}"
+            CGO_ENABLED=0 GOOS="${goos}" GOARCH="${goarch}" \
+              go build -trimpath \
+              -ldflags "-s -w -X gpt-load/internal/platform/version.Version=${GITHUB_REF_NAME}" \
+              -o "${output}" .
+          done
+          cd dist
+          sha256sum gpt-load-* > SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          flags=(--title "${GITHUB_REF_NAME}" --generate-notes)
+          # 带 prerelease 后缀（如 v2.0.0-cola.1）的 tag 标记为预发布。
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "${GITHUB_REF_NAME}" "${flags[@]}" dist/*
